@@ -2,6 +2,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useRef, useState, Suspense, useEffect } from "react";
 import { OrbitControls, Trail, Text, useGLTF } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { gsap } from "gsap";
 import * as THREE from "three";
 
 const planetFacts = {
@@ -49,7 +50,6 @@ function Sun() {
         </mesh>
     );
 }
-
 function Planet({ name, radius, baseSpeed, modelPath, size, speedMultiplier, onClick, isSelected }) {
     const planetRef = useRef();
     const textRef = useRef();
@@ -57,8 +57,6 @@ function Planet({ name, radius, baseSpeed, modelPath, size, speedMultiplier, onC
     const { camera } = useThree();
     const { scene } = useGLTF(modelPath);
     
-    
-
     useFrame(() => {
         if (planetRef.current) {
             timeRef.current += baseSpeed * speedMultiplier;
@@ -98,24 +96,154 @@ function Planet({ name, radius, baseSpeed, modelPath, size, speedMultiplier, onC
             <Text ref={textRef} color="white" anchorX="center" anchorY="middle" fontSize={0.6}>
                 {name}
             </Text>
+
+
         </>
     );
+}
+
+
+
+
+function Particles() {
+    const particlesRef = useRef();
+    const particleCount = 1000;
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        positions[i3] = (Math.random() - 0.5) * 200;
+        positions[i3 + 1] = (Math.random() - 0.5) * 200;
+        positions[i3 + 2] = (Math.random() - 0.5) * 200;
+
+        velocities[i3] = (Math.random() - 0.5) * 0.05;
+        velocities[i3 + 1] = (Math.random() - 0.5) * 0.05;
+        velocities[i3 + 2] = (Math.random() - 0.5) * 0.05;
+
+        const color = Math.random() > 0.9 ? new THREE.Color("yellow") : new THREE.Color("white");
+        colors[i3] = color.r;
+        colors[i3 + 1] = color.g;
+        colors[i3 + 2] = color.b;
+    }
+
+    useFrame(() => {
+        for (let i = 0; i < particleCount * 3; i++) {
+            positions[i] += velocities[i];
+            if (positions[i] > 100 || positions[i] < -100) velocities[i] *= -1;
+        }
+        particlesRef.current.geometry.attributes.position.needsUpdate = true;
+    });
+
+    return (
+        <points ref={particlesRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" array={positions} count={particleCount} itemSize={3} />
+                <bufferAttribute attach="attributes-color" array={colors} count={particleCount} itemSize={3} />
+            </bufferGeometry>
+            <pointsMaterial size={0.5} vertexColors depthWrite={false} transparent={true} opacity={0.8} />
+        </points>
+    );
+}
+
+
+function Asteroids() {
+    const asteroids = new Array(50).fill(0).map(() => ({
+        position: [
+            (Math.random() - 0.5) * 200,
+            (Math.random() - 0.5) * 50,
+            (Math.random() - 0.5) * 200
+        ],
+        size: Math.random() * 0.4 + 0.1
+    }));
+    return asteroids.map((asteroid, i) => (
+        <mesh key={i} position={asteroid.position}>
+            <sphereGeometry args={[asteroid.size, 8, 8]} />
+            <meshStandardMaterial color="brown" />
+        </mesh>
+    ));
 }
 
 export default function Scene() {
     const [speedMultiplier, setSpeedMultiplier] = useState(1);
     const [selectedPlanet, setSelectedPlanet] = useState(null);
     const planetNames = Object.keys(planetFacts);
+    const [mainCamera, setMainCamera] = useState(null);
+    const initialCameraPosition = new THREE.Vector3(-50, 10, -15);
 
+    const controlsRef = useRef();
+
+    const focusOnPlanet = (planetName) => {
+        if (!mainCamera) return;
+      
+        const targetPosition = planetPositions[planetName];
+      
+       
+        const offsetDirection = targetPosition.clone().normalize().multiplyScalar(5);
+        const focusPosition = targetPosition.clone().add(offsetDirection);
+      
+        
+        mainCamera.position.set(focusPosition.x, focusPosition.y, focusPosition.z);
+        mainCamera.lookAt(targetPosition.x, targetPosition.y, targetPosition.z);
+      
+        
+        if (controlsRef.current) {
+          controlsRef.current.enabled = false;
+        }
+      };
+      
+
+
+    // const handlePlanetClick = (planetName) => {
+    //     if (selectedPlanet === planetName) {
+    //         setSelectedPlanet(null);
+    //         camera.position.lerp(initialCameraPosition, 0.1);
+    //         camera.lookAt(new THREE.Vector3(0, 0, 0));
+    //     } else {
+    //         setSelectedPlanet(planetName);
+    //     }
+    // };
+
+    const planetPositions = {
+        Merkurius: new THREE.Vector3(9.3, 0, 0),
+        Venus: new THREE.Vector3(13.5, 0, 0),
+        Bumi: new THREE.Vector3(18.0, 0, 0),
+        Mars: new THREE.Vector3(24.0, 0, 0),
+        Jupiter: new THREE.Vector3(37.0, 0, 0),
+        Saturnus: new THREE.Vector3(50.0, 0, 0),
+        Uranus: new THREE.Vector3(70.0, 0, 0),
+        Neptunus: new THREE.Vector3(85.0, 0, 0)
+    };
+    
 
     const handlePlanetClick = (planetName) => {
         if (selectedPlanet === planetName) {
             setSelectedPlanet(null);
-            camera.position.lerp(initialCameraPosition, 0.1);
-            camera.lookAt(new THREE.Vector3(0, 0, 0));
-        } else {
-            setSelectedPlanet(planetName);
+            
+            if (mainCamera) {
+                gsap.to(mainCamera.position, {
+                    x: initialCameraPosition.x,
+                    y: initialCameraPosition.y,
+                    z: initialCameraPosition.z,
+                    duration: 1.5,
+                    ease: "power2.out",
+                    onUpdate: () => {
+                        mainCamera.lookAt(0, 0, 0); // Arahkan kamera kembali ke pusat (matahari)
+                    },
+                    onComplete: () => {
+                        if (controlsRef.current) {
+                            controlsRef.current.enabled = true; // Aktifkan kembali kontrol orbit
+                        }
+                    }
+                });
+            }
+            return;
         }
+    
+        // Fokus ke planet baru
+        setSelectedPlanet(planetName);
+        focusOnPlanet(planetName);
     };
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
@@ -204,17 +332,20 @@ export default function Scene() {
         {selectedPlanet}
     </h3>
     <p style={{ lineHeight: "1.2", fontSize: isMobile ? "0.7rem" : "0.9rem" }}>
-        {planetFacts[selectedPlanet]}
+    {selectedPlanet ? planetFacts[selectedPlanet] : "Farras Syuja"}
     </p>
 </div>
 
-            <Canvas style={{ background: "black" }} camera={{ position: [-50, 10, -15], fov: 50 }}>
+            <Canvas style={{ background: "black" }} camera={{ position: [-50, 10, -15], fov: 50 }} onCreated={({ camera }) => setMainCamera(camera)}>
                 <ambientLight intensity={0.5} />
                 <pointLight position={[0, 0, 0]} intensity={2} />
-                <OrbitControls enabled={!selectedPlanet} minDistance={8} maxDistance={80} />
+                <OrbitControls enabled={!selectedPlanet} minDistance={8} maxDistance={120} />
                 <EffectComposer>
                     <Bloom luminanceThreshold={0.5} luminanceSmoothing={0.5} intensity={1} />
                 </EffectComposer>
+                <Suspense fallback={null}>
+                <Particles />
+            </Suspense>
                 <Sun />
                 <Suspense fallback={null}>
                     {planetNames.map((planet) => (
@@ -231,6 +362,7 @@ export default function Scene() {
                         />
                     ))}
                 </Suspense>
+                <Asteroids />
             </Canvas>
         </>
     );
