@@ -4,366 +4,470 @@ import { OrbitControls, Trail, Text, useGLTF } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { gsap } from "gsap";
 import * as THREE from "three";
-
-const planetFacts = {
-    Merkurius: "Planet ini mengalami perbedaan suhu yang ekstrem,\n"
-    + "dengan suhu siang hari yang bisa mencapai sekitar 430°C akibat kedekatannya dengan Matahari,\n"
-    + "sementara di malam hari suhu bisa turun drastis hingga -180°C karena tidak memiliki atmosfer yang cukup untuk mempertahankan panas.",
-
-Venus: "Dikenal sebagai planet paling panas di Tata Surya,\n"
-    + "Venus memiliki atmosfer yang sangat tebal dan kaya akan karbon dioksida,\n"
-    + "menciptakan efek rumah kaca ekstrem yang membuat suhunya mencapai sekitar 475°C,\n"
-    + "bahkan lebih panas daripada Merkurius meskipun lebih jauh dari Matahari.",
-
-Bumi: "Satu-satunya planet yang diketahui memiliki kehidupan,\n"
-    + "Bumi terdiri dari 71% air di permukaannya dan memiliki atmosfer yang kaya akan oksigen\n"
-    + "serta lapisan pelindung ozon yang memungkinkan makhluk hidup berkembang.",
-
-Mars: "Dijuluki sebagai 'Planet Merah' karena permukaannya yang dipenuhi debu dan batuan kaya besi oksida,\n"
-    + "Mars juga memiliki gunung tertinggi di Tata Surya, yaitu Olympus Mons,\n"
-    + "yang tingginya mencapai sekitar 22 kilometer, hampir tiga kali lebih tinggi dari Gunung Everest.",
-
-Jupiter: "Sebagai planet terbesar di Tata Surya, Jupiter memiliki Bintik Merah Besar,\n"
-    + "yaitu badai raksasa yang telah berputar selama lebih dari 300 tahun,\n"
-    + "serta lebih dari 90 bulan yang mengorbitnya, termasuk Ganymede,\n"
-    + "bulan terbesar yang bahkan lebih besar dari Merkurius.",
-
-Saturnus: "Terkenal dengan sistem cincinnya yang paling mencolok dan luas,\n"
-    + "cincin Saturnus sebenarnya terdiri dari miliaran partikel es dan batu yang berputar mengelilinginya dengan kecepatan tinggi,\n"
-    + "menciptakan pemandangan yang spektakuler di Tata Surya.",
-
-Uranus: "Tidak seperti planet lain, Uranus berotasi hampir horizontal dengan kemiringan sumbu mencapai 98 derajat,\n"
-    + "membuatnya tampak berguling saat mengorbit Matahari,\n"
-    + "dan atmosfernya kaya akan metana, yang memberikan warna biru kehijauan khasnya.",
-
-Neptunus: "Sebagai planet terjauh dari Matahari, Neptunus memiliki angin tercepat di Tata Surya\n"
-    + "yang dapat mencapai lebih dari 2.000 km/jam,\n"
-    + "serta badai gelap besar yang mirip dengan Bintik Merah Besar di Jupiter,\n"
-    + "meskipun lebih kecil dan sering berubah posisi."
-};
-
-function Sun() {
-    return (
-        <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[5.963, 32, 32]} />
-            <meshStandardMaterial emissive="yellow" emissiveIntensity={2} />
-        </mesh>
-    );
-}
-function Planet({ name, radius, baseSpeed, modelPath, size, speedMultiplier, onClick, isSelected }) {
-    const planetRef = useRef();
-    const textRef = useRef();
-    const timeRef = useRef(0);
-    const { camera } = useThree();
-    const { scene } = useGLTF(modelPath);
-    
-    useFrame(() => {
-        if (planetRef.current) {
-            timeRef.current += baseSpeed * speedMultiplier;
-            planetRef.current.position.x = Math.cos(timeRef.current) * radius;
-            planetRef.current.position.z = Math.sin(timeRef.current) * radius;
-            planetRef.current.rotation.y += baseSpeed * 0.5;
-
-            if (textRef.current) {
-                const textOffset = size + (name === "Jupiter" || name === "Uranus" ? 4 : 1);
-                textRef.current.position.set(
-                    planetRef.current.position.x,
-                    planetRef.current.position.y + textOffset,
-                    planetRef.current.position.z
-                );
-                textRef.current.lookAt(camera.position);
-            }
-
-            if (isSelected) {
-                camera.position.lerp(
-                    new THREE.Vector3(
-                        planetRef.current.position.x - 10,
-                        planetRef.current.position.y + 10,
-                        planetRef.current.position.z
-                    ),
-                    0.1
-                );
-                camera.lookAt(planetRef.current.position);
-            }
-        }
-    });
-
-    return (
-        <>
-            <Trail local width={0.1} length={5} color="white" attenuation={(t) => t * t}>
-                <primitive ref={planetRef} object={scene} scale={size} onClick={() => onClick(name)} />
-            </Trail>
-            <Text ref={textRef} color="white" anchorX="center" anchorY="middle" fontSize={0.6}>
-                {name}
-            </Text>
-
-
-        </>
-    );
-}
-
-
-
-
-function Particles() {
-    const particlesRef = useRef();
-    const particleCount = 1000;
-    const positions = new Float32Array(particleCount * 3);
-    const velocities = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-    
-    for (let i = 0; i < particleCount; i++) {
-        const i3 = i * 3;
-        positions[i3] = (Math.random() - 0.5) * 200;
-        positions[i3 + 1] = (Math.random() - 0.5) * 200;
-        positions[i3 + 2] = (Math.random() - 0.5) * 200;
-
-        velocities[i3] = (Math.random() - 0.5) * 0.05;
-        velocities[i3 + 1] = (Math.random() - 0.5) * 0.05;
-        velocities[i3 + 2] = (Math.random() - 0.5) * 0.05;
-
-        const color = Math.random() > 0.9 ? new THREE.Color("yellow") : new THREE.Color("white");
-        colors[i3] = color.r;
-        colors[i3 + 1] = color.g;
-        colors[i3 + 2] = color.b;
-    }
-
-    useFrame(() => {
-        for (let i = 0; i < particleCount * 3; i++) {
-            positions[i] += velocities[i];
-            if (positions[i] > 100 || positions[i] < -100) velocities[i] *= -1;
-        }
-        particlesRef.current.geometry.attributes.position.needsUpdate = true;
-    });
-
-    return (
-        <points ref={particlesRef}>
-            <bufferGeometry>
-                <bufferAttribute attach="attributes-position" array={positions} count={particleCount} itemSize={3} />
-                <bufferAttribute attach="attributes-color" array={colors} count={particleCount} itemSize={3} />
-            </bufferGeometry>
-            <pointsMaterial size={0.5} vertexColors depthWrite={false} transparent={true} opacity={0.8} />
-        </points>
-    );
-}
-
-
-function Asteroids() {
-    const asteroids = new Array(50).fill(0).map(() => ({
-        position: [
-            (Math.random() - 0.5) * 200,
-            (Math.random() - 0.5) * 50,
-            (Math.random() - 0.5) * 200
-        ],
-        size: Math.random() * 0.4 + 0.1
-    }));
-    return asteroids.map((asteroid, i) => (
-        <mesh key={i} position={asteroid.position}>
-            <sphereGeometry args={[asteroid.size, 8, 8]} />
-            <meshStandardMaterial color="brown" />
-        </mesh>
-    ));
-}
+import Planet from "./planet";
+import Sun from "./sun";
+import Particles from "./particles";
+import Asteroids from "./asteroids";
+import PlanetPositions from "./planetPositions";
+import PlanetFacts from "./planetFacts";
+import Background from "./background";
 
 export default function Scene() {
-    const [speedMultiplier, setSpeedMultiplier] = useState(1);
-    const [selectedPlanet, setSelectedPlanet] = useState(null);
-    const planetNames = Object.keys(planetFacts);
-    const [mainCamera, setMainCamera] = useState(null);
-    const initialCameraPosition = new THREE.Vector3(-50, 10, -15);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const [selectedPlanet, setSelectedPlanet] = useState(null);
+  const planetNames = Object.keys(PlanetFacts);
+  const [mainCamera, setMainCamera] = useState(null);
+  const initialCameraPosition = new THREE.Vector3(-50, 10, -15);
 
-    const controlsRef = useRef();
+  const controlsRef = useRef();
 
-    const focusOnPlanet = (planetName) => {
-        if (!mainCamera) return;
-      
-        const targetPosition = planetPositions[planetName];
-      
-       
-        const offsetDirection = targetPosition.clone().normalize().multiplyScalar(5);
-        const focusPosition = targetPosition.clone().add(offsetDirection);
-      
-        
-        mainCamera.position.set(focusPosition.x, focusPosition.y, focusPosition.z);
-        mainCamera.lookAt(targetPosition.x, targetPosition.y, targetPosition.z);
-      
-        
-        if (controlsRef.current) {
-          controlsRef.current.enabled = false;
-        }
-      };
-      
+  const navigatePlanet = (direction) => {
+    const planets = Object.keys(PlanetFacts);
+    const currentIndex = planets.indexOf(selectedPlanet);
+    const newIndex =
+      (currentIndex + direction + planets.length) % planets.length;
+    handlePlanetClick(planets[newIndex]);
+  };
 
+  const focusOnPlanet = (planetName) => {
+    if (!mainCamera) return;
 
-    // const handlePlanetClick = (planetName) => {
-    //     if (selectedPlanet === planetName) {
-    //         setSelectedPlanet(null);
-    //         camera.position.lerp(initialCameraPosition, 0.1);
-    //         camera.lookAt(new THREE.Vector3(0, 0, 0));
-    //     } else {
-    //         setSelectedPlanet(planetName);
-    //     }
-    // };
+    const targetPosition = PlanetPositions[planetName];
 
-    const planetPositions = {
-        Merkurius: new THREE.Vector3(9.3, 0, 0),
-        Venus: new THREE.Vector3(13.5, 0, 0),
-        Bumi: new THREE.Vector3(18.0, 0, 0),
-        Mars: new THREE.Vector3(24.0, 0, 0),
-        Jupiter: new THREE.Vector3(37.0, 0, 0),
-        Saturnus: new THREE.Vector3(50.0, 0, 0),
-        Uranus: new THREE.Vector3(70.0, 0, 0),
-        Neptunus: new THREE.Vector3(85.0, 0, 0)
-    };
-    
+    const offsetDirection = targetPosition
+      .clone()
+      .normalize()
+      .multiplyScalar(5);
+    const focusPosition = targetPosition.clone().add(offsetDirection);
 
-    const handlePlanetClick = (planetName) => {
-        if (selectedPlanet === planetName) {
-            setSelectedPlanet(null);
-            
-            if (mainCamera) {
-                gsap.to(mainCamera.position, {
-                    x: initialCameraPosition.x,
-                    y: initialCameraPosition.y,
-                    z: initialCameraPosition.z,
-                    duration: 1.5,
-                    ease: "power2.out",
-                    onUpdate: () => {
-                        mainCamera.lookAt(0, 0, 0); // Arahkan kamera kembali ke pusat (matahari)
-                    },
-                    onComplete: () => {
-                        if (controlsRef.current) {
-                            controlsRef.current.enabled = true; // Aktifkan kembali kontrol orbit
-                        }
-                    }
-                });
+    mainCamera.position.set(focusPosition.x, focusPosition.y, focusPosition.z);
+    mainCamera.lookAt(targetPosition.x, targetPosition.y, targetPosition.z);
+
+    if (controlsRef.current) {
+      controlsRef.current.enabled = false;
+    }
+  };
+
+  // const handlePlanetClick = (planetName) => {
+  //     if (selectedPlanet === planetName) {
+  //         setSelectedPlanet(null);
+  //         camera.position.lerp(initialCameraPosition, 0.1);
+  //         camera.lookAt(new THREE.Vector3(0, 0, 0));
+  //     } else {
+  //         setSelectedPlanet(planetName);
+  //     }
+  // };
+
+  const handlePlanetClick = (planetName) => {
+    if (selectedPlanet === planetName) {
+      setSelectedPlanet(null);
+
+      if (mainCamera) {
+        gsap.to(mainCamera.position, {
+          x: initialCameraPosition.x,
+          y: initialCameraPosition.y,
+          z: initialCameraPosition.z,
+          duration: 1.5,
+          ease: "power2.out",
+          onUpdate: () => {
+            mainCamera.lookAt(0, 0, 0);
+          },
+          onComplete: () => {
+            if (controlsRef.current) {
+              controlsRef.current.enabled = true;
             }
-            return;
-        }
-    
-        // Fokus ke planet baru
-        setSelectedPlanet(planetName);
-        focusOnPlanet(planetName);
+          },
+        });
+      }
+      return;
+    }
+
+    setSelectedPlanet(planetName);
+    focusOnPlanet(planetName);
+  };
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 480);
     };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+  return (
+    <>
+      <div
+        style={{
+          position: "absolute",
+          top: "1rem",
+          left: "1rem",
+          color: "white",
+          zIndex: 100,
+        }}
+      >
+        <label>Kecepatan Orbit: </label>
+        <input
+          type="range"
+          min="0"
+          max="5"
+          step="0.1"
+          value={speedMultiplier}
+          onChange={(e) => setSpeedMultiplier(parseFloat(e.target.value))}
+        />
+      </div>
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 480);
-        };
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    return (
-        <>
-            <div style={{ position: "absolute", top: "1rem", left: "1rem", color: "white", zIndex: 100 }}>
-                <label>Kecepatan Orbit: </label>
-                <input
-                    type="range"
-                    min="0.1"
-                    max="5"
-                    step="0.1"
-                    value={speedMultiplier}
-                    onChange={(e) => setSpeedMultiplier(parseFloat(e.target.value))}
-                />
-            </div>
-
-            <div
-    style={{
-        position: "absolute",
-        top: "1rem",
-        right: isMobile ? "15%" : "1rem",
-        transform: isMobile ? "translateX(50%)" : "none",
-        color: "white",
-        zIndex: 100,
-        textAlign: "center",
-        fontSize: isMobile ? "0.8rem" : "0.9rem",
-        background: "rgba(0, 0, 0, 0.7)",
-        padding: "0.8rem",
-        borderRadius: "5px",
-        maxWidth: isMobile ? "90vw" : "150px",
-        overflowY: "auto",
-        marginTop: "1rem", 
-    }}
->
-    <h3 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>Daftar Planet</h3>
-    {planetNames.map((planet) => (
-        <div
-            key={planet}
-            style={{
-                cursor: "pointer",
-                padding: "5px",
-                background: selectedPlanet === planet ? "gray" : "transparent",
-                fontSize: "0.8rem",
-                borderRadius: "3px",
-                textAlign: "center",
-            }}
-            onClick={() => handlePlanetClick(planet)}
+      <div
+        style={{
+          position: "absolute",
+          top: "1rem",
+          right: isMobile ? "20%" : "1rem",
+          transform: isMobile ? "translateX(50%)" : "none",
+          color: "#f0f0f0",
+          zIndex: 100,
+          textAlign: "center",
+          fontSize: isMobile ? "0.8rem" : "0.9rem",
+          background: "rgba(20, 20, 20, 0.85)",
+          padding: isMobile ? "0.5rem" : "1rem",
+          borderRadius: "8px",
+          maxWidth: isMobile ? "90vw" : "180px",
+          overflow: "hidden",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          marginTop: isMobile ? "1.3rem" : "1rem",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "1.1rem",
+            marginBottom: "0.8rem",
+            color: "#ffffff",
+            fontWeight: "500",
+            letterSpacing: "0.5px",
+          }}
         >
-            {planet}
+          Daftar Planet
+        </h3>
+
+        <div
+          style={{
+            maxHeight: "300px",
+            overflowY: "auto",
+            paddingRight: "5px",
+            marginBottom: "0.8rem",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255,255,255,0.2) transparent",
+          }}
+        >
+          {planetNames.map((planet) => (
+            <div
+              key={planet}
+              style={{
+                cursor: "pointer",
+                padding: "8px 5px",
+                background:
+                  selectedPlanet === planet
+                    ? "rgba(255, 255, 255, 0.15)"
+                    : "transparent",
+                fontSize: "0.85rem",
+                borderRadius: "4px",
+                textAlign: "center",
+                margin: "3px 0",
+                transition: "all 0.2s ease",
+                border:
+                  selectedPlanet === planet
+                    ? "1px solid rgba(255, 255, 255, 0.3)"
+                    : "1px solid transparent",
+                color:
+                  selectedPlanet === planet
+                    ? "#fff"
+                    : "rgba(255, 255, 255, 0.8)",
+                ":hover": {
+                  background: "rgba(255, 255, 255, 0.1)",
+                  transform: "scale(1.02)",
+                },
+              }}
+              onClick={() => handlePlanetClick(planet)}
+            >
+              {planet}
+            </div>
+          ))}
         </div>
-    ))}
-</div>
 
+        <div
+          style={{
+            fontSize: "0.7rem",
+            color: "rgba(255, 255, 255, 0.6)",
+            borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+            paddingTop: "0.5rem",
+            marginTop: "0.5rem",
+          }}
+        >
+          Created by{" "}
+          <a
+            href="https://portfoliofarrassyuja.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "rgba(100, 200, 255, 0.9)",
+              textDecoration: "none",
+              transition: "all 0.2s ease",
+              fontWeight: "500",
+              ":hover": {
+                color: "#4fc3f7",
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Farras Syuja
+          </a>
+        </div>
+      </div>
 
-<div
-    style={{
-        position: "absolute",
-        bottom: "1rem",
-        left: "50%",
-        transform: "translateX(-50%)",
-        color: "white",
-        zIndex: 100,
-        background: "rgba(0, 0, 0, 0.7)",
-        padding: isMobile ? "0.5rem" : "0.8rem",
-        borderRadius: "5px",
-        width: isMobile ? "90%" : "80%",
-        maxWidth: isMobile ? "300px" : "400px",
-        fontSize: isMobile ? "0.75rem" : "0.9rem",
-        textAlign: "center",
-        marginTop: "2px",
-        overflowY: "auto",
-        maxHeight: "150px",
-    }}
->
-    <h3 style={{ fontSize: isMobile ? "0.9rem" : "1rem", marginBottom: "0.3rem" }}>
-        {selectedPlanet}
-    </h3>
-    <p style={{ lineHeight: "1.2", fontSize: isMobile ? "0.7rem" : "0.9rem" }}>
-    {selectedPlanet ? planetFacts[selectedPlanet] : "Farras Syuja"}
-    </p>
-</div>
+      {selectedPlanet && (
+        <div
+          style={{
+            position: "fixed", // Changed from absolute to fixed for better mobile behavior
+            bottom: "1rem",
+            left: "1rem",
+            right: "1rem",
+            transform: "none", // Remove translateX for better mobile control
+            color: "white",
+            zIndex: 100,
+            background: "rgba(10, 5, 30, 0.95)", // Slightly more opaque for better readability
+            padding: "0.8rem",
+            borderRadius: "12px",
+            fontSize: "clamp(0.75rem, 3vw, 0.9rem)", // Responsive font sizing
+            textAlign: "center",
+            border: "1px solid rgba(100, 150, 255, 0.3)",
+            boxShadow: "0 0 20px rgba(100, 150, 255, 0.3)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            overflow: "hidden",
+            margin: "0 auto", // Center the element
+            maxWidth: "500px", // Maximum width
+            width: "calc(100% - 2rem)", // Full width minus margins
+            boxSizing: "border-box", // Ensure padding is included in width
+          }}
+        >
+          {/* Simplified space effect for mobile */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "radial-gradient(circle at center, rgba(100, 150, 255, 0.1) 0%, transparent 50%)",
+              zIndex: -1,
+            }}
+          />
 
-            <Canvas style={{ background: "black" }} camera={{ position: [-50, 10, -15], fov: 50 }} onCreated={({ camera }) => setMainCamera(camera)}>
-                <ambientLight intensity={0.5} />
-                <pointLight position={[0, 0, 0]} intensity={2} />
-                <OrbitControls enabled={!selectedPlanet} minDistance={8} maxDistance={120} />
-                <EffectComposer>
-                    <Bloom luminanceThreshold={0.5} luminanceSmoothing={0.5} intensity={1} />
-                </EffectComposer>
-                <Suspense fallback={null}>
-                <Particles />
-            </Suspense>
-                <Sun />
-                <Suspense fallback={null}>
-                    {planetNames.map((planet) => (
-                        <Planet
-                            key={planet}
-                            name={planet}
-                            radius={{ Merkurius: 9.3, Venus: 13.5, Bumi: 18.0, Mars: 24.0, Jupiter: 37.0, Saturnus: 50.0, Uranus: 70.0, Neptunus: 85.0 }[planet]}
-                            baseSpeed={{ Merkurius: 0.047, Venus: 0.035, Bumi: 0.03, Mars: 0.024, Jupiter: 0.013, Saturnus: 0.009, Uranus: 0.006, Neptunus: 0.005 }[planet]}
-                            modelPath={`/models/${planet.toLowerCase()}.glb`}
-                            size={{ Merkurius: 0.5, Venus: 0.3, Bumi: 1, Mars: 0.6, Jupiter: 0.07, Saturnus: 2.4, Uranus: 0.06, Neptunus: 1.5 }[planet]}
-                            speedMultiplier={speedMultiplier}
-                            onClick={handlePlanetClick}
-                            isSelected={selectedPlanet === planet}
-                        />
-                    ))}
-                </Suspense>
-                <Asteroids />
-            </Canvas>
-        </>
-    );
+          {/* Navigation arrows - mobile optimized */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+              gap: "0.5rem",
+            }}
+          >
+            <button
+              onClick={() => navigatePlanet(-1)}
+              style={{
+                background: "rgba(100, 150, 255, 0.3)",
+                border: "none",
+                color: "white",
+                borderRadius: "50%",
+                width: "2.5rem", // Larger tap target
+                height: "2.5rem",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.3s ease",
+                fontSize: "1.2rem",
+                flexShrink: 0,
+                touchAction: "manipulation", // Improve touch responsiveness
+              }}
+              aria-label="Previous planet"
+            >
+              ←
+            </button>
+
+            <h3
+              style={{
+                fontSize: "clamp(1rem, 4vw, 1.2rem)",
+                margin: "0",
+                color: "#7ab8ff",
+                textShadow: "0 0 8px rgba(122, 184, 255, 0.5)",
+                letterSpacing: "0.5px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                flexGrow: 1,
+              }}
+            >
+              {selectedPlanet}
+            </h3>
+
+            <button
+              onClick={() => navigatePlanet(1)}
+              style={{
+                background: "rgba(100, 150, 255, 0.3)",
+                border: "none",
+                color: "white",
+                borderRadius: "50%",
+                width: "2.5rem",
+                height: "2.5rem",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.3s ease",
+                fontSize: "1.2rem",
+                flexShrink: 0,
+                touchAction: "manipulation",
+              }}
+              aria-label="Next planet"
+            >
+              →
+            </button>
+          </div>
+
+          {/* Facts container - mobile optimized */}
+          <div
+            style={{
+              maxHeight: "30vh", // Viewport-based height
+              overflowY: "auto",
+              padding: "0 0.5rem",
+              lineHeight: "1.5",
+              textAlign: "left",
+              fontSize: "clamp(0.8rem, 3vw, 0.9rem)",
+              color: "rgba(255, 255, 255, 0.9)",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255,255,255,0.3) transparent",
+              WebkitOverflowScrolling: "touch", // Smooth scrolling on iOS
+            }}
+          >
+            {selectedPlanet
+              ? PlanetFacts[selectedPlanet].split("\n").map((line, i) => (
+                  <p
+                    key={i}
+                    style={{
+                      margin: "0.5rem 0",
+                      wordBreak: "break-word", // Prevent overflow
+                    }}
+                  >
+                    {line}
+                  </p>
+                ))
+              : "Farras Syuja"}
+          </div>
+
+          {/* Touch-friendly styles */}
+          <style>
+            {`
+        @media (hover: none) {
+          button {
+            min-width: 44px;
+            min-height: 44px;
+          }
+        }
+        @keyframes twinkle {
+          0% { opacity: 0.2; }
+          100% { opacity: 1; }
+        }
+      `}
+          </style>
+        </div>
+      )}
+      <Canvas
+        style={{ background: "black" }}
+        camera={{ position: [-50, 10, -15], fov: 50 }}
+        onCreated={({ camera }) => setMainCamera(camera)}
+      >
+        <ambientLight intensity={0.5} />
+        <Background />
+        <pointLight position={[0, 0, 0]} intensity={2} />
+        <OrbitControls
+          enabled={!selectedPlanet}
+          minDistance={8}
+          maxDistance={90}
+          ref={controlsRef}
+          enablePan={false}
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: null,
+          }}
+        />
+        <EffectComposer>
+          <Bloom
+            luminanceThreshold={0.5}
+            luminanceSmoothing={0.5}
+            intensity={1}
+          />
+        </EffectComposer>
+        <Suspense fallback={null}>
+          <Particles />
+        </Suspense>
+        <Sun />
+        <Suspense fallback={null}>
+          {planetNames.map((planet) => (
+            <Planet
+              key={planet}
+              name={planet}
+              radius={
+                {
+                  Merkurius: 9.3,
+                  Venus: 13.5,
+                  Bumi: 18.0,
+                  Mars: 24.0,
+                  Jupiter: 37.0,
+                  Saturnus: 50.0,
+                  Uranus: 70.0,
+                  Neptunus: 85.0,
+                }[planet]
+              }
+              baseSpeed={
+                {
+                  Merkurius: 0.047,
+                  Venus: 0.035,
+                  Bumi: 0.03,
+                  Mars: 0.024,
+                  Jupiter: 0.013,
+                  Saturnus: 0.009,
+                  Uranus: 0.006,
+                  Neptunus: 0.005,
+                }[planet]
+              }
+              modelPath={`/models/${planet.toLowerCase()}.glb`}
+              size={
+                {
+                  Merkurius: 0.5,
+                  Venus: 0.3,
+                  Bumi: 1,
+                  Mars: 0.6,
+                  Jupiter: 0.07,
+                  Saturnus: 2.4,
+                  Uranus: 0.06,
+                  Neptunus: 1.5,
+                }[planet]
+              }
+              speedMultiplier={speedMultiplier}
+              onClick={handlePlanetClick}
+              isSelected={selectedPlanet === planet}
+            />
+          ))}
+        </Suspense>
+        <Asteroids />
+      </Canvas>
+    </>
+  );
 }
