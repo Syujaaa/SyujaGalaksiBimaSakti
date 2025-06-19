@@ -230,30 +230,29 @@ export default function Scene() {
       {selectedPlanet && (
         <div
           style={{
-            position: "fixed", // Changed from absolute to fixed for better mobile behavior
+            position: "fixed",
             bottom: "1rem",
             left: "1rem",
             right: "1rem",
-            transform: "none", // Remove translateX for better mobile control
+            transform: "none",
             color: "white",
             zIndex: 100,
-            background: "rgba(10, 5, 30, 0.95)", // Slightly more opaque for better readability
+            background: "rgba(10, 5, 30, 0.95)",
             padding: "0.8rem",
             borderRadius: "12px",
-            fontSize: "clamp(0.75rem, 3vw, 0.9rem)", // Responsive font sizing
+            fontSize: "clamp(0.75rem, 3vw, 0.9rem)",
             textAlign: "center",
             border: "1px solid rgba(100, 150, 255, 0.3)",
             boxShadow: "0 0 20px rgba(100, 150, 255, 0.3)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             overflow: "hidden",
-            margin: "0 auto", // Center the element
-            maxWidth: "500px", // Maximum width
-            width: "calc(100% - 2rem)", // Full width minus margins
-            boxSizing: "border-box", // Ensure padding is included in width
+            margin: "0 auto",
+            maxWidth: "500px",
+            width: "calc(100% - 2rem)",
+            boxSizing: "border-box",
           }}
         >
-          {/* Simplified space effect for mobile */}
           <div
             style={{
               position: "absolute",
@@ -267,7 +266,6 @@ export default function Scene() {
             }}
           />
 
-          {/* Navigation arrows - mobile optimized */}
           <div
             style={{
               display: "flex",
@@ -284,7 +282,7 @@ export default function Scene() {
                 border: "none",
                 color: "white",
                 borderRadius: "50%",
-                width: "2.5rem", // Larger tap target
+                width: "2.5rem",
                 height: "2.5rem",
                 cursor: "pointer",
                 display: "flex",
@@ -293,7 +291,7 @@ export default function Scene() {
                 transition: "all 0.3s ease",
                 fontSize: "1.2rem",
                 flexShrink: 0,
-                touchAction: "manipulation", // Improve touch responsiveness
+                touchAction: "manipulation",
               }}
               aria-label="Previous planet"
             >
@@ -340,10 +338,9 @@ export default function Scene() {
             </button>
           </div>
 
-          {/* Facts container - mobile optimized */}
           <div
             style={{
-              maxHeight: "30vh", // Viewport-based height
+              maxHeight: "30vh",
               overflowY: "auto",
               padding: "0 0.5rem",
               lineHeight: "1.5",
@@ -352,7 +349,7 @@ export default function Scene() {
               color: "rgba(255, 255, 255, 0.9)",
               scrollbarWidth: "thin",
               scrollbarColor: "rgba(255,255,255,0.3) transparent",
-              WebkitOverflowScrolling: "touch", // Smooth scrolling on iOS
+              WebkitOverflowScrolling: "touch",
             }}
           >
             {selectedPlanet
@@ -361,7 +358,7 @@ export default function Scene() {
                     key={i}
                     style={{
                       margin: "0.5rem 0",
-                      wordBreak: "break-word", // Prevent overflow
+                      wordBreak: "break-word",
                     }}
                   >
                     {line}
@@ -370,7 +367,6 @@ export default function Scene() {
               : "Farras Syuja"}
           </div>
 
-          {/* Touch-friendly styles */}
           <style>
             {`
         @media (hover: none) {
