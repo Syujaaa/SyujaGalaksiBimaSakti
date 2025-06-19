@@ -140,7 +140,7 @@ export default function Scene() {
       <div
         style={{
           position: "absolute",
-          top: "0.5rem",
+          top: isMobile ? "2.0rem" : "0.5",
           right: isMobile ? "0.5rem" : "1rem",
           color: "#f0f0f0",
           zIndex: 100,
