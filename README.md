@@ -36,7 +36,6 @@ Proyek ini adalah simulasi tata surya dari galaksi Bima Sakti yang dibuat dengan
 - ⚡ **Vite** – Bundler ringan dan cepat
 - 🌌 **Three.js** – Render grafik 3D berbasis WebGL
 - 🎯 **React-Three-Fiber** – Binding React untuk Three.js
-- 🧪 **Zustand / Redux** – Untuk state management (jika digunakan)
 
 ---
 
