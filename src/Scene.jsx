@@ -58,6 +58,25 @@ export default function Scene() {
   //     }
   // };
 
+  const listContainerRef = useRef(null);
+  const selectedItemRef = useRef(null);
+
+  useEffect(() => {
+    if (selectedItemRef.current && listContainerRef.current) {
+      const container = listContainerRef.current;
+      const selectedItem = selectedItemRef.current;
+
+      const containerHeight = container.clientHeight;
+      const itemOffset = selectedItem.offsetTop;
+      const itemHeight = selectedItem.clientHeight;
+
+      container.scrollTo({
+        top: itemOffset - containerHeight / 2 + itemHeight / 2,
+        behavior: "smooth",
+      });
+    }
+  }, [selectedPlanet]);
+
   const handlePlanetClick = (planetName) => {
     if (selectedPlanet === planetName) {
       setSelectedPlanet(null);
@@ -121,43 +140,48 @@ export default function Scene() {
       <div
         style={{
           position: "absolute",
-          top: "1rem",
-          right: isMobile ? "20%" : "1rem",
-          transform: isMobile ? "translateX(50%)" : "none",
+          top: "0.5rem",
+          right: isMobile ? "0.5rem" : "1rem",
           color: "#f0f0f0",
           zIndex: 100,
           textAlign: "center",
-          fontSize: isMobile ? "0.8rem" : "0.9rem",
-          background: "rgba(20, 20, 20, 0.85)",
-          padding: isMobile ? "0.5rem" : "1rem",
-          borderRadius: "8px",
-          maxWidth: isMobile ? "90vw" : "180px",
+          fontSize: isMobile ? "0.65rem" : "0.9rem",
+          background: "rgba(20, 20, 20, 0.95)",
+          padding: isMobile ? "0.3rem 0.2rem" : "1rem",
+          borderRadius: "6px",
+          width: isMobile ? "100px" : "180px",
+          maxWidth: isMobile ? "28vw" : "180px",
           overflow: "hidden",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          boxShadow: "0 3px 10px rgba(0, 0, 0, 0.3)",
           border: "1px solid rgba(255, 255, 255, 0.1)",
-          marginTop: isMobile ? "1.3rem" : "1rem",
+          marginTop: "0.5rem",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
         }}
       >
         <h3
           style={{
-            fontSize: "1.1rem",
-            marginBottom: "0.8rem",
+            fontSize: isMobile ? "0.75rem" : "1.1rem",
+            marginBottom: isMobile ? "0.3rem" : "0.8rem",
             color: "#ffffff",
             fontWeight: "500",
-            letterSpacing: "0.5px",
+            letterSpacing: "0.2px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            padding: isMobile ? "0 0.2rem" : "0",
           }}
         >
           Daftar Planet
         </h3>
 
         <div
+          ref={listContainerRef}
           style={{
-            maxHeight: "300px",
+            maxHeight: isMobile ? "150px" : "300px",
             overflowY: "auto",
-            paddingRight: "5px",
-            marginBottom: "0.8rem",
+            paddingRight: "2px",
+            marginBottom: isMobile ? "0.3rem" : "0.8rem",
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(255,255,255,0.2) transparent",
           }}
@@ -165,17 +189,18 @@ export default function Scene() {
           {planetNames.map((planet) => (
             <div
               key={planet}
+              ref={selectedPlanet === planet ? selectedItemRef : null}
               style={{
                 cursor: "pointer",
-                padding: "8px 5px",
+                padding: isMobile ? "4px 2px" : "8px 5px",
                 background:
                   selectedPlanet === planet
                     ? "rgba(255, 255, 255, 0.15)"
                     : "transparent",
-                fontSize: "0.85rem",
-                borderRadius: "4px",
+                fontSize: isMobile ? "0.65rem" : "0.85rem",
+                borderRadius: "3px",
                 textAlign: "center",
-                margin: "3px 0",
+                margin: "1px 0",
                 transition: "all 0.2s ease",
                 border:
                   selectedPlanet === planet
@@ -185,9 +210,11 @@ export default function Scene() {
                   selectedPlanet === planet
                     ? "#fff"
                     : "rgba(255, 255, 255, 0.8)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
                 ":hover": {
                   background: "rgba(255, 255, 255, 0.1)",
-                  transform: "scale(1.02)",
                 },
               }}
               onClick={() => handlePlanetClick(planet)}
@@ -199,11 +226,12 @@ export default function Scene() {
 
         <div
           style={{
-            fontSize: "0.7rem",
+            fontSize: "0.55rem",
             color: "rgba(255, 255, 255, 0.6)",
             borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-            paddingTop: "0.5rem",
-            marginTop: "0.5rem",
+            paddingTop: "0.2rem",
+            marginTop: "0.2rem",
+            lineHeight: "1.2",
           }}
         >
           Created by{" "}
@@ -214,7 +242,6 @@ export default function Scene() {
             style={{
               color: "rgba(100, 200, 255, 0.9)",
               textDecoration: "none",
-              transition: "all 0.2s ease",
               fontWeight: "500",
               ":hover": {
                 color: "#4fc3f7",
